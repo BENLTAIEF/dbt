@@ -1,0 +1,76 @@
+version: 2
+
+models:
+  - name: dim_listings_cleansed
+    description: Cleansed table which contains Airbnb listings
+
+    columns:
+      - name: listing_id
+        description: Primary key for the listing
+        test_name: listingid_unique_and_not_null
+        data_tests:
+          - unique
+          - not_null
+
+      - name: host_id
+        description: Ths host's id. References the host table
+        test_name: host_id_not_null_exist_dim_hosts
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('dim_hosts_cleansed')
+              field: host_id
+
+      - name: room_type
+        description: Type of the apartment / room
+        test_name: room_type_accepted_values
+        data_tests:
+          - accepted_values:
+              values: ['Entire home/apt', 'Private room', 'Shared room', 'Hotel room']
+
+      - name: minimum_nights
+        description: '{{ doc("dim_listing_cleansed__minimum_nights") }}'
+        test_name: positive_value
+        data_tests:
+          - positive_value
+
+  - name: dim_hosts_cleansed
+    columns:
+      - name: host_id
+        data_tests:
+          - not_null
+          - unique
+        
+      - name: host_name
+        data_tests:
+          - not_null
+        
+      - name: is_superhost
+        data_tests:
+          - accepted_values:
+              values: ['t', 'f']
+  - name: dim_listings_w_hosts
+    columns:
+      - name: price
+        data_tests:
+          - dbt_expectations.expect_column_quantile_values_to_be_between:
+              quantile: .95
+              min_value: 5 # (Optional)
+              max_value: 500 # (Optional)
+          - dbt_expectations.expect_column_max_to_be_between:
+              min_value: 1 # (Optional)
+              max_value: 8001 # (Optional)
+  - name: fct_reviews
+    columns:
+      - name: listing_id
+        data_tests:
+          - relationships:
+              to: ref('dim_listings_cleansed')
+              field: listing_id
+      - name: reviewer_name
+        data_tests:
+          - not_null
+      - name: review_sentiment
+        data_tests:
+          - accepted_values:
+              values: ['positive', 'neutral', 'negative']

@@ -6,7 +6,17 @@ sources:
     tables:
       - name: listings
         identifier: raw_listings
-
+        columns:
+          - name: room_type
+            data_tests:
+              - dbt_expectations.expect_column_distinct_count_to_equal:
+                  value: 4
+                  row_condition: "minimum_nights is not null"
+          - name: price
+            data_tests:
+              - dbt_expectations.expect_column_values_to_match_regex:
+                  regex: "^\\\\$[0-9][0-9\\\\.]+$"
+                  row_condition: "minimum_nights is not null"
       - name: hosts
         identifier: raw_hosts
 

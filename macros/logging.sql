@@ -1,3 +1,3 @@
 {% macro learn_logging() %}
-  {{ log("Hello world") }}
+  {{ log("Hello world", info=True) }}
 {% endmacro %}
